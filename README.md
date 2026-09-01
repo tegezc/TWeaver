@@ -2,6 +2,8 @@
 
 Security-by-design architecture canvas for the [WebMCP Challenge](https://webmcp.devpost.com/).
 
+**Live demo:** [https://t-weaver.vercel.app/](https://t-weaver.vercel.app/)
+
 A human sketches a cloud system. An agent reads the live graph, draws STRIDE attack paths, and patches the same canvas — inserting a WAF, flipping encryption, closing public access.
 
 This repository is a **new project** created during the submission period. There is no pre-existing product.
@@ -13,10 +15,10 @@ Architecture work is spatial. A chat memo that says "add a WAF" still leaves the
 ## What people and agents do together
 
 1. The page loads an insecure 3-tier starter (Internet → Web → API Gateway → Backend → Database + Storage).
-2. The human can drag more components or ask the agent to add/connect nodes.
+2. The human can drag more components, toggle public/encrypted/rate-limit flags, or ask the agent to add/connect nodes.
 3. The agent calls `simulate_attack` — an Attacker node and animated red edges appear, with STRIDE badges.
 4. The agent calls `apply_security_patch` — the graph changes (WAF inline, VPC, encryption, private access).
-5. `get_threat_report` returns what is still open vs secured. The activity log shows every tool call.
+5. `get_threat_report` returns what is still open vs secured vs misconfigured. The activity log shows tool calls and human canvas edits.
 
 ## WebMCP implementation
 
@@ -25,7 +27,7 @@ Tools register on `document.modelContext` in [`client/src/hooks/useWebMCP.ts`](c
 | Tool | Role |
 | --- | --- |
 | `get_architecture_state` | Read-only graph (semantic `kind`, config, threats, patches) |
-| `get_threat_report` | Read-only STRIDE / patch summary |
+| `get_threat_report` | Read-only STRIDE / patch / misconfiguration summary |
 | `load_starter_architecture` | Reset the insecure template |
 | `add_node` | Add a component, including `waf` and `vpc` |
 | `connect_nodes` | Data-flow edge |
@@ -35,6 +37,66 @@ Tools register on `document.modelContext` in [`client/src/hooks/useWebMCP.ts`](c
 
 Each tool uses JSON Schema (`additionalProperties: false`), `title`, `annotations.readOnlyHint`, and `AbortSignal` lifecycle (`await registerTool(tool, { signal })`). There is no backend MCP server.
 
+The in-page badge **WebMCP ready · 8 tools** means the page registered tools on `document.modelContext`. It does **not** mean ChatGPT has called a tool. Site tools are discovered in ChatGPT **Work** (or Codex) with model **GPT-5.6 Sol or Terra**. **Luna** disables WebMCP. The **Chat** tab does not use site tools. Stock Chrome without the WebMCP flag also shows **unavailable** — that is expected.
+
+## Judge path (~60 seconds)
+
+Use the live URL over HTTPS. In ChatGPT desktop: Work (not Chat), Sol or Terra, Site tools = 8. Paste these prompts one at a time. The canvas must move; a text-only reply is not a successful demo.
+
+1. `Read the architecture and list the highest-risk nodes.`
+   Expected: activity log shows `get_architecture_state`. Agent names public gateway / public datastore ids such as `api-gateway-1` and `database-1`.
+2. `Simulate a denial-of-service attack on the API gateway and information disclosure on the database.`
+   Expected: Attacker node, animated red threat edges, STRIDE badges. Log: `simulate_attack`.
+3. `Apply a WAF in front of the API gateway, encrypt the database, and remove public access.`
+   Expected: WAF node on the incoming path to the gateway; database encrypted and not public; red edges to those targets gone. Log: `apply_security_patch`.
+4. `Give me a threat report of what changed.`
+   Expected: log `get_threat_report`. Report includes existing fields plus `misconfiguredNodes` and `openThreatCount`.
+
+If the activity log stays empty, tools were not invoked — do not treat that as a passing run.
+
+### Example tool payloads (shape, not a live capture)
+
+`get_architecture_state` returns semantic kinds, not React Flow's `architectureNode` type:
+
+```json
+{
+  "nodes": [
+    {
+      "id": "api-gateway-1",
+      "kind": "apigateway",
+      "label": "API Gateway",
+      "config": { "publicAccess": true, "encrypted": false, "rateLimited": false },
+      "threats": [],
+      "patches": [],
+      "position": { "x": 560, "y": 220 }
+    }
+  ],
+  "edges": [
+    { "id": "edge-webserver-1-api-gateway-1", "source": "webserver-1", "target": "api-gateway-1", "kind": "data" }
+  ]
+}
+```
+
+`get_threat_report` after the starter loads, before attacks:
+
+```json
+{
+  "totalNodes": 6,
+  "vulnerableNodes": [],
+  "securedNodes": [],
+  "misconfiguredNodes": [
+    { "id": "webserver-1", "kind": "webserver" },
+    { "id": "api-gateway-1", "kind": "apigateway" },
+    { "id": "database-1", "kind": "database" },
+    { "id": "storage-1", "kind": "storage" }
+  ],
+  "threatEdges": [],
+  "openThreatCount": 0
+}
+```
+
+(`misconfiguredNodes` in the real payload includes full node objects: label, config, threats, patches, position.)
+
 ## Run locally
 
 ```bash
@@ -43,7 +105,7 @@ npm install
 npm run dev
 ```
 
-Build: `npm run build` from `client/`.
+Build: `npm run build` from `client/`. Vercel Root Directory must be `client` (static Vite output).
 
 ## Test WebMCP (judges)
 
@@ -53,13 +115,13 @@ The Cursor / stock Chrome tab used for UI work will show **WebMCP unavailable**.
 
 1. Latest ChatGPT desktop app.
 2. Model: GPT-5.6 Sol or Terra (Luna disables WebMCP).
-3. Open the in-app browser → this app's HTTPS URL.
-4. Confirm Site tools lists 8 tools.
-5. Prompt: "Read the architecture and simulate a denial-of-service attack on the API gateway."
+3. Open the in-app browser → [https://t-weaver.vercel.app/](https://t-weaver.vercel.app/).
+4. Confirm Site tools lists 8 tools (2 read / 6 write).
+5. Run the four prompts in **Judge path** above. Confirm the activity log, not only the chat reply.
 
 ### Google Chrome 149+
 
-1. Enable `chrome://flags/#enable-webmcp-testing` and relaunch.
+1. Enable `chrome://flags/#enable-webmcp-testing` and relaunch. The flag only enables the API; an agent still has to call tools (for example the Model Context Tool Inspector extension).
 2. Open the HTTPS URL.
 3. DevTools → Application → WebMCP, or the Model Context Tool Inspector.
 4. Same prompts as above.
