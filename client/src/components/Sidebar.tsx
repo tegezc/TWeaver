@@ -108,9 +108,12 @@ export default function Sidebar() {
       </button>
 
       <div>
-        <h2 className="mb-2 text-xs font-semibold tracking-wide text-slate-400 uppercase">
-          Inspector Execute
+        <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+          Copy inspector JSON
         </h2>
+        <p className="mb-2 text-[10px] leading-snug text-slate-500">
+          Click copies JSON. Paste into Chrome Manual Tool Execution — this does not run the tool.
+        </p>
         <ul className="space-y-1.5">
           {INSPECTOR_PAYLOADS.map((item) => {
             const key = `payload:${item.id}`;
@@ -131,15 +134,15 @@ export default function Sidebar() {
             );
           })}
         </ul>
-        <p className="mt-2 text-[10px] text-slate-500">
-          Copy JSON, then paste into Chrome Manual Tool Execution. Do not type live.
-        </p>
       </div>
 
       <div>
-        <h2 className="mb-2 text-xs font-semibold tracking-wide text-slate-400 uppercase">
-          Ask the agent
+        <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+          Copy agent prompts
         </h2>
+        <p className="mb-2 text-[10px] leading-snug text-slate-500">
+          Click copies the prompt. Paste into ChatGPT Work if you use that path.
+        </p>
         <ul className="space-y-2">
           {SAMPLE_PROMPTS.map((prompt) => {
             const key = `prompt:${prompt}`;
@@ -159,10 +162,6 @@ export default function Sidebar() {
             );
           })}
         </ul>
-        <p className="mt-2 text-[10px] text-slate-500">
-          Backup path: copy and paste into ChatGPT Work. Chrome inspector Execute is the recorded
-          demo path.
-        </p>
       </div>
     </aside>
   );
