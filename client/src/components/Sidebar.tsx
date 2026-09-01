@@ -100,73 +100,90 @@ export default function Sidebar() {
         </div>
       </div>
 
-      <button
-        type="button"
-        className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-left text-xs text-slate-200 hover:bg-slate-800"
-        onClick={() => {
-          const result = loadStarterArchitecture();
-          logActivity('ui.reset', 'starter architecture', JSON.stringify(result));
-        }}
-      >
-        Reset insecure starter
-      </button>
+      <section className="space-y-4 rounded-lg border border-dashed border-slate-700 p-3">
+        <div>
+          <h2 className="mb-1 text-xs font-semibold tracking-wide text-amber-200/80 uppercase">
+            Demo
+          </h2>
+          <p className="text-[10px] leading-snug text-slate-500">
+            For recording and judging — not product undo.
+          </p>
+        </div>
 
-      <div>
-        <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
-          Copy inspector JSON
-        </h2>
-        <p className="mb-2 text-[10px] leading-snug text-slate-500">
-          Click copies JSON. Paste into Chrome Manual Tool Execution — this does not run the tool.
-        </p>
-        <ul className="space-y-1.5">
-          {INSPECTOR_PAYLOADS.map((item) => {
-            const key = `payload:${item.id}`;
-            return (
-              <li key={item.id}>
-                <button
-                  type="button"
-                  title={item.tool}
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900 px-2 py-1.5 text-left font-mono text-[11px] leading-snug text-sky-200 hover:border-slate-600"
-                  onClick={() => {
-                    markCopied(key);
-                    copyText(JSON.stringify(item.payload, null, 2));
-                  }}
-                >
-                  {copiedKey === key ? 'Copied' : item.label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+        <div>
+          <button
+            type="button"
+            className="w-full rounded-lg border border-amber-900/70 bg-slate-950 px-3 py-2 text-left text-[11px] text-amber-100/90 hover:border-amber-800 hover:bg-slate-900"
+            onClick={() => {
+              const result = loadStarterArchitecture();
+              logActivity('ui.reset', 'starter architecture', JSON.stringify(result));
+            }}
+          >
+            Reload insecure demo graph
+          </button>
+          <p className="mt-1.5 text-[10px] leading-snug text-slate-500">
+            Replaces the canvas with the built-in 3-tier template. This is not undo.
+          </p>
+        </div>
 
-      <div>
-        <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
-          Copy agent prompts
-        </h2>
-        <p className="mb-2 text-[10px] leading-snug text-slate-500">
-          Click copies the prompt. Paste into ChatGPT Work if you use that path.
-        </p>
-        <ul className="space-y-2">
-          {SAMPLE_PROMPTS.map((prompt) => {
-            const key = `prompt:${prompt}`;
-            return (
-              <li key={prompt}>
-                <button
-                  type="button"
-                  className="w-full rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-left text-[11px] leading-snug text-slate-300 hover:border-slate-600"
-                  onClick={() => {
-                    markCopied(key);
-                    copyText(prompt);
-                  }}
-                >
-                  {copiedKey === key ? 'Copied' : prompt}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+        <div>
+          <h3 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            Copy inspector JSON
+          </h3>
+          <p className="mb-2 text-[10px] leading-snug text-slate-500">
+            Click copies JSON. Paste into Chrome Manual Tool Execution — this does not run the
+            tool.
+          </p>
+          <ul className="space-y-1.5">
+            {INSPECTOR_PAYLOADS.map((item) => {
+              const key = `payload:${item.id}`;
+              return (
+                <li key={item.id}>
+                  <button
+                    type="button"
+                    title={item.tool}
+                    className="w-full rounded-lg border border-slate-800 bg-slate-900 px-2 py-1.5 text-left font-mono text-[11px] leading-snug text-sky-200 hover:border-slate-600"
+                    onClick={() => {
+                      markCopied(key);
+                      copyText(JSON.stringify(item.payload, null, 2));
+                    }}
+                  >
+                    {copiedKey === key ? 'Copied' : item.label}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        <div>
+          <h3 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+            Copy agent prompts
+          </h3>
+          <p className="mb-2 text-[10px] leading-snug text-slate-500">
+            Click copies the prompt. Paste into ChatGPT Work if you use that path.
+          </p>
+          <ul className="space-y-2">
+            {SAMPLE_PROMPTS.map((prompt) => {
+              const key = `prompt:${prompt}`;
+              return (
+                <li key={prompt}>
+                  <button
+                    type="button"
+                    className="w-full rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-left text-[11px] leading-snug text-slate-300 hover:border-slate-600"
+                    onClick={() => {
+                      markCopied(key);
+                      copyText(prompt);
+                    }}
+                  >
+                    {copiedKey === key ? 'Copied' : prompt}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      </section>
     </aside>
   );
 }
