@@ -35,12 +35,12 @@ function dataEdge(source: string, target: string): Edge {
 export function createStarterArchitecture(): { nodes: ThreatNode[]; edges: Edge[] } {
   return {
     nodes: [
-      node('internet-1', 'internet', 40, 220),
-      node('webserver-1', 'webserver', 300, 220, { publicAccess: true }),
-      node('api-gateway-1', 'apigateway', 560, 220, { publicAccess: true, rateLimited: false }),
-      node('backend-1', 'backendservice', 820, 220),
-      node('database-1', 'database', 1080, 80, { publicAccess: true, encrypted: false }),
-      node('storage-1', 'storage', 1080, 360, { publicAccess: true, encrypted: false }),
+      node('internet-1', 'internet', 320, 40),
+      node('webserver-1', 'webserver', 320, 260, { publicAccess: true }),
+      node('api-gateway-1', 'apigateway', 320, 500, { publicAccess: true, rateLimited: false }),
+      node('backend-1', 'backendservice', 320, 740),
+      node('database-1', 'database', 120, 980, { publicAccess: true, encrypted: false }),
+      node('storage-1', 'storage', 520, 980, { publicAccess: true, encrypted: false }),
     ],
     edges: [
       dataEdge('internet-1', 'webserver-1'),

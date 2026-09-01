@@ -261,7 +261,7 @@ const useStore = create<AppState>((set, get) => ({
       attacker = {
         id: 'attacker-1',
         type: 'architectureNode',
-        position: { x: 40, y: 20 },
+        position: { x: 40, y: 200 },
         data: {
           label: KIND_LABELS.attacker,
           kind: 'attacker',
@@ -333,8 +333,8 @@ const useStore = create<AppState>((set, get) => ({
           id: wafId,
           type: 'architectureNode',
           position: {
-            x: target.position.x - 200,
-            y: target.position.y,
+            x: target.position.x,
+            y: target.position.y - 120,
           },
           data: {
             label: KIND_LABELS.waf,
@@ -372,8 +372,8 @@ const useStore = create<AppState>((set, get) => ({
           id: addedNodeId,
           type: 'architectureNode',
           position: {
-            x: target.position.x,
-            y: target.position.y - 140,
+            x: target.position.x - 240,
+            y: target.position.y,
           },
           data: {
             label: KIND_LABELS.vpc,

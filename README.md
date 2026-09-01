@@ -68,7 +68,7 @@ If the activity log stays empty, tools were not invoked — do not treat that as
       "config": { "publicAccess": true, "encrypted": false, "rateLimited": false },
       "threats": [],
       "patches": [],
-      "position": { "x": 560, "y": 220 }
+      "position": { "x": 320, "y": 500 }
     }
   ],
   "edges": [

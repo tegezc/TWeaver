@@ -58,7 +58,7 @@ export default function ArchitectureNode({ id, data, selected }: NodeProps<Threa
         selected ? 'ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-950' : ''
       }`}
     >
-      <Handle type="target" position={Position.Left} className="!bg-slate-400" />
+      <Handle type="target" position={Position.Top} className="!bg-slate-400" />
       <div className="flex items-start gap-3">
         <div className={`rounded-lg p-2 ${iconWrap}`}>
           <Icon size={20} />
@@ -100,7 +100,7 @@ export default function ArchitectureNode({ id, data, selected }: NodeProps<Threa
         </div>
       )}
 
-      <Handle type="source" position={Position.Right} className="!bg-slate-400" />
+      <Handle type="source" position={Position.Bottom} className="!bg-slate-400" />
     </div>
   );
 }

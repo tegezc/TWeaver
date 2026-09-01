@@ -64,6 +64,8 @@ function CanvasApp() {
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView
+        minZoom={0.35}
+        defaultEdgeOptions={{ type: 'smoothstep' }}
         colorMode="dark"
         className="bg-slate-950"
         proOptions={{ hideAttribution: true }}
