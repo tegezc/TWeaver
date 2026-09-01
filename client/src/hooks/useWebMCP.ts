@@ -43,6 +43,15 @@ function summarizeResult(result: unknown): string {
   }
 }
 
+function isErrorPayload(result: unknown): boolean {
+  return (
+    typeof result === 'object' &&
+    result !== null &&
+    'error' in result &&
+    typeof (result as { error: unknown }).error === 'string'
+  );
+}
+
 const emptyObjectSchema = {
   type: 'object',
   properties: {},
@@ -69,11 +78,17 @@ export function useWebMCP() {
         if (!readOnly) useStore.getState().setAgentWriting(true);
         try {
           const result = execute(input);
-          useStore.getState().logActivity(tool, summarize(input), summarizeResult(result));
+          const failed = isErrorPayload(result);
+          useStore.getState().logActivity(
+            tool,
+            summarize(input),
+            summarizeResult(result),
+            !failed,
+          );
           return result;
         } catch (error) {
           const message = error instanceof Error ? error.message : String(error);
-          useStore.getState().logActivity(tool, summarize(input), `error: ${message}`);
+          useStore.getState().logActivity(tool, summarize(input), `error: ${message}`, false);
           throw error;
         } finally {
           if (!readOnly) {
@@ -105,7 +120,7 @@ export function useWebMCP() {
           name: 'get_threat_report',
           title: 'Threat report',
           description:
-            'Summarize current STRIDE findings, secured nodes, and active threat edges on the canvas. Use after simulate_attack or apply_security_patch to explain what changed.',
+            'Summarize current STRIDE findings, secured nodes, misconfigured nodes (public unencrypted datastores, or public gateways/web without rate limiting), active threat edges, and openThreatCount. Use after simulate_attack or apply_security_patch to explain what changed. A node can be in securedNodes (a patch was applied) and still appear in misconfiguredNodes.',
           inputSchema: emptyObjectSchema,
           annotations: { readOnlyHint: true, untrustedContentHint: false },
           execute: wrap('get_threat_report', true, () => useStore.getState().getThreatReport()),
