@@ -88,6 +88,7 @@ export default function ArchitectureNode({ data, selected }: NodeProps<ThreatNod
         <div className="mt-2 rounded border border-red-800 bg-red-950/80 p-2 text-[11px] text-red-100">
           <AlertTriangle size={12} className="mr-1 inline" />
           {STRIDE_LABELS[data.threats[0].stride]}
+          {data.threats.length > 1 ? ` (+${data.threats.length - 1})` : ''}
         </div>
       )}
 
@@ -95,6 +96,7 @@ export default function ArchitectureNode({ data, selected }: NodeProps<ThreatNod
         <div className="mt-2 rounded border border-emerald-800 bg-emerald-950/80 p-2 text-[11px] text-emerald-100">
           <ShieldCheck size={12} className="mr-1 inline" />
           {PATCH_LABELS[data.patches[0]]}
+          {data.patches.length > 1 ? ` (+${data.patches.length - 1})` : ''}
         </div>
       )}
 
