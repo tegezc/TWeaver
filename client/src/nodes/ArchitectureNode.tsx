@@ -2,9 +2,19 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { AlertTriangle, Server, ShieldCheck } from 'lucide-react';
 import { PATCH_LABELS, STRIDE_LABELS } from '../domain/kinds';
 import type { ThreatNode } from '../store/types';
+import useStore, { reportRingFor } from '../store/useStore';
 import { KIND_ICONS } from './kindIcons';
 
+const reportRingClass = {
+  threat: 'ring-2 ring-red-400 ring-offset-2 ring-offset-slate-950',
+  misconfigured: 'ring-2 ring-amber-400 ring-offset-2 ring-offset-slate-950',
+  secured: 'ring-2 ring-emerald-400 ring-offset-2 ring-offset-slate-950',
+} as const;
+
 export default function ArchitectureNode({ id, data, selected }: NodeProps<ThreatNode>) {
+  const reportRing = useStore((state) =>
+    reportRingFor(id, state.lastThreatReport, state.reportHighlightUntil),
+  );
   const Icon = KIND_ICONS[data.kind] ?? Server;
   const isAttacker = data.kind === 'attacker';
   const isSecurity = data.kind === 'waf' || data.kind === 'vpc';
@@ -30,7 +40,11 @@ export default function ArchitectureNode({ id, data, selected }: NodeProps<Threa
   return (
     <div
       className={`relative w-56 rounded-xl border-2 p-3 shadow-xl ${frame} ${
-        selected ? 'ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-950' : ''
+        reportRing
+          ? reportRingClass[reportRing]
+          : selected
+            ? 'ring-2 ring-sky-400 ring-offset-2 ring-offset-slate-950'
+            : ''
       }`}
     >
       <Handle type="target" position={Position.Top} className="!bg-slate-400" />

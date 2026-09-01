@@ -39,3 +39,14 @@ export type AgentEdgeView = {
   target: string;
   kind: 'data' | 'threat';
 };
+
+export type ThreatReport = {
+  totalNodes: number;
+  vulnerableNodes: AgentNodeView[];
+  securedNodes: AgentNodeView[];
+  misconfiguredNodes: AgentNodeView[];
+  threatEdges: AgentEdgeView[];
+  openThreatCount: number;
+};
+
+export type ReportRing = 'threat' | 'misconfigured' | 'secured';

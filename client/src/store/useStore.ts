@@ -22,8 +22,10 @@ import type {
   ActivityEntry,
   AgentEdgeView,
   AgentNodeView,
+  ReportRing,
   ThreatEdge,
   ThreatNode,
+  ThreatReport,
   WebmcpStatus,
 } from './types';
 
@@ -34,6 +36,8 @@ type AppState = {
   activity: ActivityEntry[];
   webmcpStatus: WebmcpStatus;
   agentWriting: boolean;
+  lastThreatReport: ThreatReport | null;
+  reportHighlightUntil: number;
   onNodesChange: OnNodesChange<ThreatNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
@@ -66,14 +70,7 @@ type AppState = {
     patchType: PatchType;
   }) => { applied: PatchType; addedNodeId?: string } | { error: string };
   getArchitectureState: () => { nodes: AgentNodeView[]; edges: AgentEdgeView[] };
-  getThreatReport: () => {
-    totalNodes: number;
-    vulnerableNodes: AgentNodeView[];
-    securedNodes: AgentNodeView[];
-    misconfiguredNodes: AgentNodeView[];
-    threatEdges: AgentEdgeView[];
-    openThreatCount: number;
-  };
+  getThreatReport: () => ThreatReport;
 };
 
 function toAgentNode(node: ThreatNode): AgentNodeView {
@@ -122,6 +119,8 @@ const useStore = create<AppState>((set, get) => ({
   activity: [],
   webmcpStatus: 'unknown',
   agentWriting: false,
+  lastThreatReport: null,
+  reportHighlightUntil: 0,
 
   onNodesChange: (changes: NodeChange<ThreatNode>[]) => {
     const removedIds = changes
@@ -181,6 +180,8 @@ const useStore = create<AppState>((set, get) => ({
       nodes: next.nodes,
       edges: next.edges,
       selectedNodeId: null,
+      lastThreatReport: null,
+      reportHighlightUntil: 0,
     });
     return { nodeCount: next.nodes.length, edgeCount: next.edges.length };
   },
@@ -436,7 +437,7 @@ const useStore = create<AppState>((set, get) => ({
     const threatEdges = get()
       .edges.filter((edge) => edge.type === 'threatEdge')
       .map(toAgentEdge);
-    return {
+    const report: ThreatReport = {
       totalNodes: nodes.length,
       vulnerableNodes: nodes.filter((node) => node.threats.length > 0),
       securedNodes: nodes.filter((node) => node.patches.length > 0),
@@ -444,7 +445,28 @@ const useStore = create<AppState>((set, get) => ({
       threatEdges,
       openThreatCount: threatEdges.length,
     };
+    const reportHighlightUntil = Date.now() + 4000;
+    set({ lastThreatReport: report, reportHighlightUntil });
+    window.setTimeout(() => {
+      if (get().reportHighlightUntil === reportHighlightUntil) {
+        set({ reportHighlightUntil: 0 });
+      }
+    }, 4000);
+    return report;
   },
 }));
+
+export function reportRingFor(
+  nodeId: string,
+  report: ThreatReport | null,
+  highlightUntil: number,
+  now = Date.now(),
+): ReportRing | null {
+  if (!report || now >= highlightUntil) return null;
+  if (report.vulnerableNodes.some((node) => node.id === nodeId)) return 'threat';
+  if (report.misconfiguredNodes.some((node) => node.id === nodeId)) return 'misconfigured';
+  if (report.securedNodes.some((node) => node.id === nodeId)) return 'secured';
+  return null;
+}
 
 export default useStore;

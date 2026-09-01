@@ -20,6 +20,17 @@ const edgeTypes = {
   threatEdge: ThreatEdge,
 };
 
+function ThreatReportHud() {
+  const report = useStore((state) => state.lastThreatReport);
+  if (!report) return null;
+  return (
+    <div className="pointer-events-none absolute top-3 left-3 z-10 max-w-md rounded-lg border border-slate-600 bg-slate-950/90 px-3 py-2 text-[11px] text-slate-100 shadow-lg">
+      Threat report · {report.openThreatCount} open · {report.misconfiguredNodes.length}{' '}
+      misconfigured · {report.securedNodes.length} secured
+    </div>
+  );
+}
+
 function CanvasApp() {
   const nodes = useStore((state) => state.nodes);
   const edges = useStore((state) => state.edges);
@@ -79,6 +90,7 @@ function CanvasApp() {
           maskColor="rgba(2, 6, 23, 0.7)"
         />
       </ReactFlow>
+      <ThreatReportHud />
     </div>
   );
 }
