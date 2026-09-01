@@ -27,6 +27,7 @@ function CanvasApp() {
   const onEdgesChange = useStore((state) => state.onEdgesChange);
   const onConnect = useStore((state) => state.onConnect);
   const addArchitectureNode = useStore((state) => state.addArchitectureNode);
+  const logActivity = useStore((state) => state.logActivity);
   const setSelectedNodeId = useStore((state) => state.setSelectedNodeId);
   const { screenToFlowPosition } = useReactFlow();
 
@@ -44,9 +45,10 @@ function CanvasApp() {
         x: event.clientX,
         y: event.clientY,
       });
-      addArchitectureNode({ kind: raw, x: position.x, y: position.y });
+      const added = addArchitectureNode({ kind: raw, x: position.x, y: position.y });
+      logActivity('ui.add_node', `kind=${raw}`, added.id);
     },
-    [addArchitectureNode, screenToFlowPosition],
+    [addArchitectureNode, logActivity, screenToFlowPosition],
   );
 
   return (

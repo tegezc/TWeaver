@@ -18,6 +18,7 @@ export type ActivityEntry = {
   tool: string;
   detail: string;
   result: string;
+  ok: boolean;
 };
 
 export type WebmcpStatus = 'unknown' | 'ready' | 'unavailable';

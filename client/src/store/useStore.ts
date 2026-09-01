@@ -7,7 +7,7 @@ import type {
   OnEdgesChange,
   OnNodesChange,
 } from '@xyflow/react';
-import { addEdge, applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
+import { applyEdgeChanges, applyNodeChanges } from '@xyflow/react';
 import {
   KIND_LABELS,
   defaultConfig,
@@ -40,7 +40,7 @@ type AppState = {
   setSelectedNodeId: (id: string | null) => void;
   setWebmcpStatus: (status: WebmcpStatus) => void;
   setAgentWriting: (value: boolean) => void;
-  logActivity: (tool: string, detail: string, result: string) => void;
+  logActivity: (tool: string, detail: string, result: string, ok?: boolean) => void;
   loadStarterArchitecture: () => { nodeCount: number; edgeCount: number };
   addArchitectureNode: (input: {
     kind: ArchitectureKind;
@@ -70,7 +70,9 @@ type AppState = {
     totalNodes: number;
     vulnerableNodes: AgentNodeView[];
     securedNodes: AgentNodeView[];
+    misconfiguredNodes: AgentNodeView[];
     threatEdges: AgentEdgeView[];
+    openThreatCount: number;
   };
 };
 
@@ -95,6 +97,20 @@ function toAgentEdge(edge: ThreatEdge): AgentEdgeView {
   };
 }
 
+function isMisconfigured(node: AgentNodeView): boolean {
+  if (node.kind === 'database' || node.kind === 'storage') {
+    return node.config.publicAccess || !node.config.encrypted;
+  }
+  if (
+    node.kind === 'apigateway' ||
+    node.kind === 'webserver' ||
+    node.kind === 'loadbalancer'
+  ) {
+    return node.config.publicAccess && !node.config.rateLimited;
+  }
+  return false;
+}
+
 let activitySeq = 0;
 
 const starter = createStarterArchitecture();
@@ -108,19 +124,45 @@ const useStore = create<AppState>((set, get) => ({
   agentWriting: false,
 
   onNodesChange: (changes: NodeChange<ThreatNode>[]) => {
-    set({ nodes: applyNodeChanges(changes, get().nodes) });
+    const removedIds = changes
+      .filter((change) => change.type === 'remove')
+      .map((change) => change.id);
+    const selectedNodeId = get().selectedNodeId;
+    set({
+      nodes: applyNodeChanges(changes, get().nodes),
+      selectedNodeId:
+        selectedNodeId && removedIds.includes(selectedNodeId) ? null : selectedNodeId,
+    });
+    for (const id of removedIds) {
+      get().logActivity('ui.delete', `nodeId=${id}`, 'removed');
+    }
   },
   onEdgesChange: (changes: EdgeChange[]) => {
     set({ edges: applyEdgeChanges(changes, get().edges) });
   },
   onConnect: (connection: Connection) => {
-    set({ edges: addEdge(connection, get().edges) });
+    if (!connection.source || !connection.target) return;
+    const result = get().connectNodes(connection.source, connection.target);
+    if ('error' in result) {
+      get().logActivity(
+        'ui.connect',
+        `${connection.source} -> ${connection.target}`,
+        result.error,
+        false,
+      );
+      return;
+    }
+    get().logActivity(
+      'ui.connect',
+      `${connection.source} -> ${connection.target}`,
+      result.id,
+    );
   },
   setSelectedNodeId: (id) => set({ selectedNodeId: id }),
   setWebmcpStatus: (status) => set({ webmcpStatus: status }),
   setAgentWriting: (value) => set({ agentWriting: value }),
 
-  logActivity: (tool, detail, result) => {
+  logActivity: (tool, detail, result, ok = true) => {
     activitySeq += 1;
     const entry: ActivityEntry = {
       id: `act-${activitySeq}`,
@@ -128,6 +170,7 @@ const useStore = create<AppState>((set, get) => ({
       tool,
       detail,
       result,
+      ok,
     };
     set({ activity: [entry, ...get().activity].slice(0, 40) });
   },
@@ -241,7 +284,7 @@ const useStore = create<AppState>((set, get) => ({
       };
     });
 
-    const edgeId = `threat-${attacker.id}-${targetNodeId}-${Date.now()}`;
+    const edgeId = `threat-${attacker.id}-${targetNodeId}`;
     const threatEdge: ThreatEdge = {
       id: edgeId,
       source: attacker.id,
@@ -249,8 +292,19 @@ const useStore = create<AppState>((set, get) => ({
       type: 'threatEdge',
       animated: true,
     };
+    const edges = [
+      ...get().edges.filter(
+        (edge) =>
+          !(
+            edge.type === 'threatEdge' &&
+            edge.source === attacker.id &&
+            edge.target === targetNodeId
+          ),
+      ),
+      threatEdge,
+    ];
 
-    set({ nodes, edges: [...get().edges, threatEdge] });
+    set({ nodes, edges });
     return { edgeId };
   },
 
@@ -379,11 +433,16 @@ const useStore = create<AppState>((set, get) => ({
 
   getThreatReport: () => {
     const nodes = get().nodes.map(toAgentNode);
+    const threatEdges = get()
+      .edges.filter((edge) => edge.type === 'threatEdge')
+      .map(toAgentEdge);
     return {
       totalNodes: nodes.length,
       vulnerableNodes: nodes.filter((node) => node.threats.length > 0),
       securedNodes: nodes.filter((node) => node.patches.length > 0),
-      threatEdges: get().edges.filter((edge) => edge.type === 'threatEdge').map(toAgentEdge),
+      misconfiguredNodes: nodes.filter(isMisconfigured),
+      threatEdges,
+      openThreatCount: threatEdges.length,
     };
   },
 }));
