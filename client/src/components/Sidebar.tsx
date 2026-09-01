@@ -1,16 +1,19 @@
+import { useState } from 'react';
 import { ARCHITECTURE_KINDS, KIND_LABELS } from '../domain/kinds';
 import type { ArchitectureKind } from '../domain/kinds';
 import useStore from '../store/useStore';
 
 const SAMPLE_PROMPTS = [
   'Read the architecture and list the highest-risk nodes.',
-  'Simulate denial_of_service on api-gateway-1 and information_disclosure on database-1.',
-  'Apply a WAF on api-gateway-1, encrypt database-1, and close public access.',
+  'Simulate a denial-of-service attack on the API gateway and information disclosure on the database.',
+  'Apply a WAF in front of the API gateway, encrypt the database, and remove public access.',
+  'Give me a threat report of what changed.',
 ];
 
 export default function Sidebar() {
   const loadStarterArchitecture = useStore((state) => state.loadStarterArchitecture);
   const logActivity = useStore((state) => state.logActivity);
+  const [copiedPrompt, setCopiedPrompt] = useState<string | null>(null);
 
   return (
     <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-800 bg-slate-950 p-4">
@@ -47,10 +50,16 @@ export default function Sidebar() {
                 type="button"
                 className="w-full rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-left text-[11px] leading-snug text-slate-300 hover:border-slate-600"
                 onClick={() => {
-                  void navigator.clipboard.writeText(prompt);
+                  setCopiedPrompt(prompt);
+                  window.setTimeout(() => {
+                    setCopiedPrompt((current) => (current === prompt ? null : current));
+                  }, 1500);
+                  void navigator.clipboard.writeText(prompt).catch(() => {
+                    /* Clipboard may be blocked in some browsers; the Copied label still confirms the click. */
+                  });
                 }}
               >
-                {prompt}
+                {copiedPrompt === prompt ? 'Copied' : prompt}
               </button>
             </li>
           ))}
