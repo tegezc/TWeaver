@@ -1,36 +1,11 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
-import {
-  AlertTriangle,
-  Box,
-  Cloud,
-  Database,
-  Globe,
-  HardDrive,
-  Monitor,
-  Network,
-  Server,
-  Shield,
-  ShieldCheck,
-} from 'lucide-react';
-import type { NodeKind } from '../domain/kinds';
+import { AlertTriangle, Server, ShieldCheck } from 'lucide-react';
 import { PATCH_LABELS, STRIDE_LABELS } from '../domain/kinds';
 import type { ThreatNode } from '../store/types';
-
-const icons: Record<NodeKind, typeof Server> = {
-  internet: Globe,
-  loadbalancer: Network,
-  webserver: Monitor,
-  apigateway: Cloud,
-  backendservice: Server,
-  database: Database,
-  storage: HardDrive,
-  waf: Shield,
-  vpc: Box,
-  attacker: AlertTriangle,
-};
+import { KIND_ICONS } from './kindIcons';
 
 export default function ArchitectureNode({ id, data, selected }: NodeProps<ThreatNode>) {
-  const Icon = icons[data.kind] ?? Server;
+  const Icon = KIND_ICONS[data.kind] ?? Server;
   const isAttacker = data.kind === 'attacker';
   const isSecurity = data.kind === 'waf' || data.kind === 'vpc';
   const hasThreats = data.threats.length > 0;

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ARCHITECTURE_KINDS, KIND_LABELS } from '../domain/kinds';
 import type { ArchitectureKind } from '../domain/kinds';
+import { KIND_ICONS } from '../nodes/kindIcons';
 import useStore from '../store/useStore';
 
 const SAMPLE_PROMPTS = [
@@ -86,10 +87,13 @@ export default function Sidebar() {
   return (
     <aside className="flex w-64 shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-800 bg-slate-950 p-4">
       <div>
-        <h2 className="mb-2 text-xs font-semibold tracking-wide text-slate-400 uppercase">
+        <h2 className="mb-1 text-xs font-semibold tracking-wide text-slate-400 uppercase">
           Components
         </h2>
-        <div className="grid gap-1.5">
+        <p className="mb-2 text-[10px] leading-snug text-slate-500">
+          Drag a component onto the canvas.
+        </p>
+        <div className="grid grid-cols-2 gap-1.5">
           {ARCHITECTURE_KINDS.map((kind) => (
             <PaletteItem key={kind} kind={kind} />
           ))}
@@ -168,16 +172,22 @@ export default function Sidebar() {
 }
 
 function PaletteItem({ kind }: { kind: ArchitectureKind }) {
+  const Icon = KIND_ICONS[kind];
+  const label = KIND_LABELS[kind];
   return (
     <div
+      role="button"
+      aria-label={`Drag ${label} onto the canvas`}
       draggable
+      title={label}
       onDragStart={(event) => {
         event.dataTransfer.setData('application/reactflow', kind);
         event.dataTransfer.effectAllowed = 'move';
       }}
-      className="cursor-grab rounded-lg border border-slate-800 bg-slate-900 px-3 py-2 text-xs text-slate-200 hover:border-slate-600 hover:bg-slate-800"
+      className="flex cursor-grab flex-col items-center gap-1 rounded-lg border border-slate-700 bg-slate-900/80 px-1.5 py-2 text-slate-200 hover:border-slate-500 hover:bg-slate-800"
     >
-      {KIND_LABELS[kind]}
+      <Icon size={16} className="text-slate-300" />
+      <span className="text-center text-[10px] leading-tight">{label}</span>
     </div>
   );
 }
