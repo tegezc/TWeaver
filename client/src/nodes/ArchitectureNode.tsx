@@ -13,7 +13,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import type { NodeKind } from '../domain/kinds';
-import { KIND_LABELS, PATCH_LABELS, STRIDE_LABELS } from '../domain/kinds';
+import { PATCH_LABELS, STRIDE_LABELS } from '../domain/kinds';
 import type { ThreatNode } from '../store/types';
 
 const icons: Record<NodeKind, typeof Server> = {
@@ -29,7 +29,7 @@ const icons: Record<NodeKind, typeof Server> = {
   attacker: AlertTriangle,
 };
 
-export default function ArchitectureNode({ data, selected }: NodeProps<ThreatNode>) {
+export default function ArchitectureNode({ id, data, selected }: NodeProps<ThreatNode>) {
   const Icon = icons[data.kind] ?? Server;
   const isAttacker = data.kind === 'attacker';
   const isSecurity = data.kind === 'waf' || data.kind === 'vpc';
@@ -65,7 +65,7 @@ export default function ArchitectureNode({ data, selected }: NodeProps<ThreatNod
         </div>
         <div className="min-w-0">
           <div className="truncate text-sm font-semibold">{data.label}</div>
-          <div className="font-mono text-[10px] text-slate-400">{KIND_LABELS[data.kind]}</div>
+          <div className="truncate font-mono text-[10px] text-slate-400">{id}</div>
         </div>
       </div>
 
