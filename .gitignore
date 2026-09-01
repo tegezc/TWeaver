@@ -1,0 +1,18 @@
+node_modules
+dist
+dist-ssr
+*.local
+*.log
+.DS_Store
+.idea
+.vscode
+
+.env
+.env.*
+!.env.example
+coverage/
+*.tsbuildinfo
+
+# Leftover Gemini scaffolds (not part of the product)
+server/
+frontend/

@@ -1,0 +1,88 @@
+import { useCallback } from 'react';
+import {
+  Background,
+  Controls,
+  MiniMap,
+  ReactFlow,
+  ReactFlowProvider,
+  useReactFlow,
+} from '@xyflow/react';
+import { isArchitectureKind } from '../domain/kinds';
+import ThreatEdge from '../edges/ThreatEdge';
+import ArchitectureNode from '../nodes/ArchitectureNode';
+import useStore from '../store/useStore';
+
+const nodeTypes = {
+  architectureNode: ArchitectureNode,
+};
+
+const edgeTypes = {
+  threatEdge: ThreatEdge,
+};
+
+function CanvasApp() {
+  const nodes = useStore((state) => state.nodes);
+  const edges = useStore((state) => state.edges);
+  const onNodesChange = useStore((state) => state.onNodesChange);
+  const onEdgesChange = useStore((state) => state.onEdgesChange);
+  const onConnect = useStore((state) => state.onConnect);
+  const addArchitectureNode = useStore((state) => state.addArchitectureNode);
+  const setSelectedNodeId = useStore((state) => state.setSelectedNodeId);
+  const { screenToFlowPosition } = useReactFlow();
+
+  const onDragOver = useCallback((event: React.DragEvent) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback(
+    (event: React.DragEvent) => {
+      event.preventDefault();
+      const raw = event.dataTransfer.getData('application/reactflow');
+      if (!isArchitectureKind(raw)) return;
+      const position = screenToFlowPosition({
+        x: event.clientX,
+        y: event.clientY,
+      });
+      addArchitectureNode({ kind: raw, x: position.x, y: position.y });
+    },
+    [addArchitectureNode, screenToFlowPosition],
+  );
+
+  return (
+    <div className="relative h-full min-w-0 flex-1" onDragOver={onDragOver} onDrop={onDrop}>
+      <ReactFlow
+        nodes={nodes}
+        edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
+        onNodeClick={(_event, node) => setSelectedNodeId(node.id)}
+        onPaneClick={() => setSelectedNodeId(null)}
+        nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
+        fitView
+        colorMode="dark"
+        className="bg-slate-950"
+        proOptions={{ hideAttribution: true }}
+      >
+        <Background gap={20} color="#1e293b" />
+        <Controls />
+        <MiniMap
+          pannable
+          zoomable
+          className="!bg-slate-900 !border-slate-700"
+          maskColor="rgba(2, 6, 23, 0.7)"
+        />
+      </ReactFlow>
+    </div>
+  );
+}
+
+export default function Canvas() {
+  return (
+    <ReactFlowProvider>
+      <CanvasApp />
+    </ReactFlowProvider>
+  );
+}
