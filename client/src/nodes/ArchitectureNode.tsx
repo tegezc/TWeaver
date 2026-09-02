@@ -15,6 +15,7 @@ export default function ArchitectureNode({ id, data, selected }: NodeProps<Threa
   const reportRing = useStore((state) =>
     reportRingFor(id, state.lastThreatReport, state.reportHighlightUntil),
   );
+  const inBlast = useStore((state) => (state.blastExposedBy[id]?.length ?? 0) > 0);
   const Icon = KIND_ICONS[data.kind] ?? Server;
   const isAttacker = data.kind === 'attacker';
   const isSecurity = data.kind === 'waf' || data.kind === 'vpc';
@@ -40,6 +41,8 @@ export default function ArchitectureNode({ id, data, selected }: NodeProps<Threa
   return (
     <div
       className={`relative w-56 rounded-xl border-2 p-3 shadow-xl ${frame} ${
+        inBlast ? 'blast-radius' : ''
+      } ${
         reportRing
           ? reportRingClass[reportRing]
           : selected
@@ -70,6 +73,11 @@ export default function ArchitectureNode({ id, data, selected }: NodeProps<Threa
         )}
         {data.config.rateLimited && (
           <span className="rounded bg-sky-950 px-1.5 py-0.5 text-sky-200">rate-limit</span>
+        )}
+        {inBlast && (
+          <span className="rounded bg-orange-950 px-1.5 py-0.5 font-semibold tracking-wide text-orange-200 uppercase">
+            blast radius
+          </span>
         )}
       </div>
 

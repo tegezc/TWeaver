@@ -18,6 +18,7 @@ import {
   type Stride,
 } from '../domain/kinds';
 import { createStarterArchitecture } from '../domain/starter';
+import { computeBlastExposedBy } from '../domain/graph';
 import type {
   ActivityEntry,
   AgentEdgeView,
@@ -38,6 +39,7 @@ type AppState = {
   agentWriting: boolean;
   lastThreatReport: ThreatReport | null;
   reportHighlightUntil: number;
+  blastExposedBy: Record<string, string[]>;
   onNodesChange: OnNodesChange<ThreatNode>;
   onEdgesChange: OnEdgesChange;
   onConnect: OnConnect;
@@ -121,6 +123,7 @@ const useStore = create<AppState>((set, get) => ({
   agentWriting: false,
   lastThreatReport: null,
   reportHighlightUntil: 0,
+  blastExposedBy: {},
 
   onNodesChange: (changes: NodeChange<ThreatNode>[]) => {
     const removedIds = changes
@@ -182,6 +185,7 @@ const useStore = create<AppState>((set, get) => ({
       selectedNodeId: null,
       lastThreatReport: null,
       reportHighlightUntil: 0,
+      blastExposedBy: {},
     });
     return { nodeCount: next.nodes.length, edgeCount: next.edges.length };
   },
@@ -305,7 +309,11 @@ const useStore = create<AppState>((set, get) => ({
       threatEdge,
     ];
 
-    set({ nodes, edges });
+    set({
+      nodes,
+      edges,
+      blastExposedBy: computeBlastExposedBy(nodes, edges),
+    });
     return { edgeId };
   },
 
@@ -423,7 +431,11 @@ const useStore = create<AppState>((set, get) => ({
       (edge) => !(edge.type === 'threatEdge' && edge.target === targetNodeId),
     );
 
-    set({ nodes, edges });
+    set({
+      nodes,
+      edges,
+      blastExposedBy: computeBlastExposedBy(nodes, edges),
+    });
     return addedNodeId ? { applied: patchType, addedNodeId } : { applied: patchType };
   },
 

@@ -27,3 +27,17 @@ body {
   stroke-dasharray: 6 6;
   animation: threat-dash 0.55s linear infinite;
 }
+
+@keyframes blast-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgb(251 146 60 / 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgb(251 146 60 / 0);
+  }
+}
+
+.blast-radius {
+  animation: blast-pulse 1.4s ease-in-out infinite;
+}
