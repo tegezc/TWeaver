@@ -38,10 +38,15 @@ export function computeBlastExposedBy(
   nodes: ThreatRootNode[],
   edges: GraphEdge[],
 ): Record<string, string[]> {
+  const byId = new Map(nodes.map((node) => [node.id, node]));
   const map: Record<string, string[]> = {};
   for (const node of nodes) {
     if (node.data.kind === 'attacker' || node.data.threats.length === 0) continue;
     for (const descendantId of dataDescendants(node.id, edges)) {
+      const descendant = byId.get(descendantId);
+      if (!descendant || descendant.data.kind === 'attacker' || descendant.data.threats.length > 0) {
+        continue;
+      }
       const roots = map[descendantId] ?? [];
       if (!roots.includes(node.id)) roots.push(node.id);
       map[descendantId] = roots;
