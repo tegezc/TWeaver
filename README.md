@@ -37,22 +37,38 @@ Tools register on `document.modelContext` in [`client/src/hooks/useWebMCP.ts`](c
 
 Each tool uses JSON Schema (`additionalProperties: false`), `title`, `annotations.readOnlyHint`, and `AbortSignal` lifecycle (`await registerTool(tool, { signal })`). There is no backend MCP server.
 
-The in-page badge **WebMCP ready · 8 tools** means the page registered tools on `document.modelContext`. It does **not** mean ChatGPT has called a tool. Site tools are discovered in ChatGPT **Work** (or Codex) with model **GPT-5.6 Sol or Terra**. **Luna** disables WebMCP. The **Chat** tab does not use site tools. Stock Chrome without the WebMCP flag also shows **unavailable** — that is expected.
+The in-page badge **WebMCP ready · 8 tools** means the page registered tools on `document.modelContext`. It does **not** mean ChatGPT has called a tool. Site tools are discovered in ChatGPT **Work or Codex** (not the **Chat** tab) with **Terra / Terra Light**, or **Sol** if that model is available on the account. **Luna** disables WebMCP. Stock Chrome without the WebMCP flag also shows **unavailable** — that is expected.
 
-## Judge path (~60 seconds)
+## Judge path (four prompts)
 
-Use the live URL over HTTPS. In ChatGPT desktop: Work (not Chat), Sol or Terra, Site tools = 8. Paste these prompts one at a time. The canvas must move; a text-only reply is not a successful demo.
+Use the live HTTPS URL. In ChatGPT desktop: **Work or Codex** (not Chat), Terra / Terra Light (or Sol if available), Site tools = 8 (2 read / 6 write). Paste these prompts one at a time. Wait for the canvas and the activity log after each send. A text-only reply is not a successful demo.
 
 1. `Read the architecture and list the highest-risk nodes.`
    Expected: activity log shows `get_architecture_state`. Agent names public gateway / public datastore ids such as `api-gateway-1` and `database-1`.
 2. `Simulate a denial-of-service attack on the API gateway and information disclosure on the database.`
-   Expected: Attacker node, animated red threat edges, STRIDE badges. Log: `simulate_attack`.
+   Expected: Attacker node, animated red threat edges, STRIDE badges. Log: two `simulate_attack` calls (gateway DoS, then database disclosure).
 3. `Apply a WAF in front of the API gateway, encrypt the database, and remove public access.`
-   Expected: WAF node on the incoming path to the gateway; database encrypted and not public; red edges to those targets gone. Log: `apply_security_patch`.
+   Expected: WAF node on the incoming path to the gateway; database encrypted and not public; red edges to those targets gone. Log: three `apply_security_patch` calls (WAF, encrypt, private access).
 4. `Give me a threat report of what changed.`
    Expected: log `get_threat_report`. Report includes existing fields plus `misconfiguredNodes` and `openThreatCount`.
 
 If the activity log stays empty, tools were not invoked — do not treat that as a passing run.
+
+### If the agent leaves the page
+
+If ChatGPT opens GitHub or leaves the live canvas, stay on this URL and send one of these instead (one prompt per send):
+
+```
+Use only the site tools on this open ThreatWeaver page. Do not open GitHub, do not read any repository, do not inspect source code. Call get_architecture_state and list the highest-risk node ids.
+```
+
+```
+Stay on this page. Use site tools only. Simulate a denial-of-service attack on api-gateway-1. Do not browse away. Do not open GitHub.
+```
+
+```
+Stay on this page. Use site tools only. Apply a WAF in front of api-gateway-1.
+```
 
 ### Example tool payloads (shape, not a live capture)
 
@@ -105,7 +121,7 @@ npm install
 npm run dev
 ```
 
-Build: `npm run build` from `client/`. Vercel Root Directory must be `client` (static Vite output).
+The Vite app lives in `client/`. Build with `npm run build` from `client/`. Vercel Root Directory must be `client` (static Vite output).
 
 ## Test WebMCP (judges)
 
@@ -113,11 +129,11 @@ The Cursor / stock Chrome tab used for UI work will show **WebMCP unavailable**.
 
 ### ChatGPT desktop (recommended)
 
-1. Latest ChatGPT desktop app.
-2. Model: GPT-5.6 Sol or Terra (Luna disables WebMCP).
+1. Latest ChatGPT desktop app. Open a **Work or Codex** tab — not **Chat**.
+2. Model: **Terra / Terra Light** (or **Sol** if available). **Luna** disables WebMCP.
 3. Open the in-app browser → [https://t-weaver.vercel.app/](https://t-weaver.vercel.app/).
 4. Confirm Site tools lists 8 tools (2 read / 6 write).
-5. Run the four prompts in **Judge path** above. Confirm the activity log, not only the chat reply.
+5. Run the four prompts in **Judge path** above. Confirm the activity log, not only the chat reply. If the agent leaves the page, use the tighter prompts in that section.
 
 ### Google Chrome 149+
 
